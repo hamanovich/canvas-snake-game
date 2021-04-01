@@ -2,9 +2,15 @@ import Board from './Board';
 import Snake from './Snake';
 
 export default class SnakeGame {
-  constructor(el = 'mycanvas') {
+  constructor(
+    el,
+    config = {
+      speed: 150,
+    },
+  ) {
     this.canvas = document.getElementById(el);
     this.ctx = this.canvas.getContext('2d');
+    this.config = config;
     this.sprites = {
       background: null,
       cell: null,
@@ -24,6 +30,11 @@ export default class SnakeGame {
         height: 300,
       },
     };
+    this.board = new Board(this.ctx, {
+      canvasSize: this.canvasSize,
+      sprites: this.sprites,
+    });
+    this.snake = new Snake(this.ctx, this.board, { sprites: this.sprites });
   }
 
   start() {
@@ -41,7 +52,7 @@ export default class SnakeGame {
     let onAssetLoad = () => {
       ++loaded;
 
-      if (loaded <= required) callback();
+      if (loaded >= required) callback();
     };
 
     for (let key in this.sprites) {
@@ -62,9 +73,7 @@ export default class SnakeGame {
     };
 
     if (data.winWidth / data.winHeight > data.maxWidth / data.maxHeight) {
-      {
-        this.fitWidth(data);
-      }
+      this.fitWidth(data);
     } else {
       this.fitHeight(data);
     }
@@ -74,7 +83,7 @@ export default class SnakeGame {
   }
 
   fitWidth(data) {
-    this.canvasSize.height = Math.round((this.width * data.winHeight) / data.winWidth);
+    this.canvasSize.height = Math.round((this.canvasSize.width * data.winHeight) / data.winWidth);
     this.canvasSize.height = Math.min(this.canvasSize.height, data.maxHeight);
     this.canvasSize.height = Math.max(this.canvasSize.height, data.minHeight);
 
@@ -91,23 +100,32 @@ export default class SnakeGame {
     this.canvas.style.height = '100%';
   }
 
-  run() {
-    const board = new Board({
-      canvasSize: this.canvasSize,
-    });
-    const snake = new Snake();
+  create() {
+    this.board.create();
+    this.snake.create();
+  }
 
-    board.create(this.sprites.cell);
-    snake.create(board.cells);
-
+  render() {
     window.requestAnimationFrame(() => {
+      this.ctx.clearRect(0, 0, this.canvasSize.width, this.canvasSize.height);
       this.ctx.drawImage(
         this.sprites.background,
         (this.canvasSize.width - this.sprites.background.width) / 2,
         (this.canvasSize.height - this.sprites.background.height) / 2,
       );
-      board.render(this.ctx, this.sprites.cell);
-      snake.render(this.ctx, this.sprites.body);
+      this.board.render();
+      this.snake.render();
     });
+  }
+
+  update() {
+    this.snake.move();
+    this.render();
+  }
+
+  run() {
+    this.create();
+
+    setInterval(this.update.bind(this), this.config.speed);
   }
 }

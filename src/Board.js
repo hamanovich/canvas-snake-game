@@ -1,16 +1,22 @@
 export default class Board {
-  constructor(options) {
+  constructor(context, options) {
+    this.ctx = context;
+    this.options = options;
     this.cells = [];
     this.boardSize = 15;
     this.gameSize = options?.canvasSize;
   }
 
-  create(cellSprite) {
+  create() {
     for (let row = 0; row < this.boardSize; row++) {
       for (let col = 0; col < this.boardSize; col++) {
-        this.cells.push(this.createCell(cellSprite, row, col));
+        this.cells.push(this.createCell(this.options.sprites.cell, row, col));
       }
     }
+  }
+
+  getCell(row, col) {
+    return this.cells.find((cell) => cell.row === row && cell.col === col);
   }
 
   createCell(cellSprite, row, col) {
@@ -27,7 +33,7 @@ export default class Board {
     return cell;
   }
 
-  render(ctx, cellSprite) {
-    this.cells.forEach((cell) => ctx.drawImage(cellSprite, cell.x, cell.y));
+  render() {
+    this.cells.forEach((cell) => this.ctx.drawImage(this.options.sprites.cell, cell.x, cell.y));
   }
 }

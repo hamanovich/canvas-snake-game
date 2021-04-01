@@ -1,6 +1,7 @@
 import './style.css';
 import SnakeGame from './SnakeGame';
 
-const game = new SnakeGame();
-
-game.start();
+window.game = new SnakeGame('mycanvas', {
+    speed: 150
+});
+window.game.start();
