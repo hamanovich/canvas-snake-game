@@ -2,12 +2,7 @@ import Board from './Board';
 import Snake from './Snake';
 
 export default class SnakeGame {
-  constructor(
-    el,
-    config = {
-      speed: 150,
-    },
-  ) {
+  constructor(el, config) {
     this.canvas = document.getElementById(el);
     this.ctx = this.canvas.getContext('2d');
     this.config = config;
@@ -15,6 +10,7 @@ export default class SnakeGame {
       background: null,
       cell: null,
       body: null,
+      food: null,
     };
     this.canvasSize = {
       width: 0,
@@ -32,6 +28,7 @@ export default class SnakeGame {
     };
     this.board = new Board(this.ctx, {
       canvasSize: this.canvasSize,
+      boardSize: this.config.size,
       sprites: this.sprites,
     });
     this.snake = new Snake(this.ctx, this.board, { sprites: this.sprites });
@@ -103,6 +100,10 @@ export default class SnakeGame {
   create() {
     this.board.create();
     this.snake.create();
+
+    window.addEventListener('keydown', (evt) => {
+      this.snake.start(evt.code);
+    });
   }
 
   render() {
@@ -126,6 +127,6 @@ export default class SnakeGame {
   run() {
     this.create();
 
-    setInterval(this.update.bind(this), this.config.speed);
+    setInterval(this.update.bind(this), this.config.speed || 150);
   }
 }
