@@ -11,6 +11,7 @@ export default class Board {
   create() {
     this.createCells();
     this.createFood();
+    this.createBomb();
   }
 
   getCell(row, col) {
@@ -42,17 +43,38 @@ export default class Board {
   getRandomCell() {
     // TODO: Implement check whether food is on snake
     // const pool = this.cells.filter((cell) => !this.options.isSnakeOnSell(cell));
-    return this.cells[randomValue(0, this.cells.length - 1)];
+    const pool = this.cells.filter((cell) => !cell.type);
+    return pool[randomValue(0, this.cells.length - 1)];
+  }
+
+  createCellItem(type) {
+    let cell = this.cells.find((c) => c.type === type);
+
+    cell && (cell.type = false);
+
+    cell = this.getRandomCell();
+    cell.type = type;
   }
 
   createFood() {
-    const cell = this.getRandomCell();
-    cell.hasFood = true;
+    this.createCellItem('food');
+  }
+
+  createBomb() {
+    this.createCellItem('bomb');
+  }
+
+  isFoodCell(cell) {
+    return cell.type === 'food';
+  }
+
+  isBombCell(cell) {
+    return cell.type === 'bomb';
   }
 
   render() {
     this.cells.forEach((cell) =>
-      this.ctx.drawImage(cell.hasFood ? this.options.sprites.food : this.options.sprites.cell, cell.x, cell.y),
+      this.ctx.drawImage(cell.type ? this.options.sprites[cell.type] : this.options.sprites.cell, cell.x, cell.y),
     );
   }
 }

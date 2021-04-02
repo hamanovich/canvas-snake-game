@@ -2,7 +2,8 @@ import './style.css';
 import SnakeGame from './SnakeGame';
 
 window.game = new SnakeGame('mycanvas', {
-  speed: 150,
+  snakeSpeed: 150,
+  bombTimer: 2500,
   size: 15,
 });
 window.game.start();

@@ -6,12 +6,13 @@ export default class Snake {
     this.cells = [];
     this.moving = false;
     this.directions = {
-      up: { row: -1, col: 0 },
-      down: { row: 1, col: 0 },
-      left: { row: 0, col: -1 },
-      right: { row: 0, col: 1 },
+      up: { row: -1, col: 0, angle: 0 },
+      down: { row: 1, col: 0, angle: 180 },
+      left: { row: 0, col: -1, angle: 270 },
+      right: { row: 0, col: 1, angle: 90 },
     };
     this.direction = false;
+    this.status = null;
   }
 
   start(keyCode) {
@@ -50,8 +51,29 @@ export default class Snake {
     }
   }
 
+  renderHead() {
+    const head = this.cells[0];
+    const headSize = this.options.sprites.head.width;
+
+    this.ctx.save();
+    this.ctx.translate(head.x, head.y);
+    this.ctx.translate(headSize / 2, headSize / 2);
+    this.ctx.rotate((this.direction.angle * Math.PI) / 180);
+
+    this.ctx.drawImage(this.options.sprites.head, -headSize / 2, -headSize / 2);
+
+    this.ctx.restore();
+  }
+
+  renderBody() {
+    for (let i = 1; i < this.cells.length; i++) {
+      this.ctx.drawImage(this.options.sprites.body, this.cells[i].x, this.cells[i].y);
+    }
+  }
+
   render() {
-    this.cells.forEach((cell) => this.ctx.drawImage(this.options.sprites.body, cell.x, cell.y));
+    this.renderHead();
+    this.renderBody();
   }
 
   move() {
@@ -59,9 +81,16 @@ export default class Snake {
 
     const cell = this.getNextCell();
 
-    if (cell) {
+    if (!cell || this.hasCell(cell) || this.board.isBombCell(cell)) {
+      this.status = 'FAILED';
+    } else {
       this.cells.unshift(cell);
-      this.cells.pop();
+
+      if (!this.board.isFoodCell(cell)) {
+        this.cells.pop();
+      } else {
+        this.board.createFood();
+      }
     }
   }
 
@@ -72,5 +101,9 @@ export default class Snake {
     const col = head.col + this.direction.col;
 
     return this.board.getCell(row, col);
+  }
+
+  hasCell(cell) {
+    return this.cells.find((c) => c === cell);
   }
 }

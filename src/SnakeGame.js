@@ -11,6 +11,8 @@ export default class SnakeGame {
       cell: null,
       body: null,
       food: null,
+      head: null,
+      bomb: null,
     };
     this.canvasSize = {
       width: 0,
@@ -25,6 +27,10 @@ export default class SnakeGame {
         width: 300,
         height: 300,
       },
+    };
+    this.intervals = {
+      snake: null,
+      bomb: null,
     };
     this.board = new Board(this.ctx, {
       canvasSize: this.canvasSize,
@@ -49,7 +55,7 @@ export default class SnakeGame {
     let onAssetLoad = () => {
       ++loaded;
 
-      if (loaded >= required) callback();
+      loaded >= required && callback();
     };
 
     for (let key in this.sprites) {
@@ -122,11 +128,22 @@ export default class SnakeGame {
   update() {
     this.snake.move();
     this.render();
+
+    this.snake.status === 'FAILED' && this.stop();
   }
 
   run() {
     this.create();
 
-    setInterval(this.update.bind(this), this.config.speed || 150);
+    this.intervals.snake = setInterval(this.update.bind(this), this.config.snakeSpped || 150);
+    this.intervals.bomb = setInterval(() => {
+      this.snake.moving && this.board.createBomb();
+    }, this.config.bombTimer || 3000);
+  }
+
+  stop() {
+    Object.keys(this.intervals).forEach((interval) => clearInterval(this.intervals[interval]));
+    alert('Game Over!');
+    window.location.reload();
   }
 }
