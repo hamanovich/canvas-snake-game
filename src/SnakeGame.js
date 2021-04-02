@@ -6,18 +6,9 @@ export default class SnakeGame {
     this.canvas = document.getElementById(el);
     this.ctx = this.canvas.getContext('2d');
     this.config = config;
-    this.sprites = {
-      background: null,
-      cell: null,
-      body: null,
-      food: null,
-      head: null,
-      bomb: null,
-    };
-    this.canvasSize = {
-      width: 0,
-      height: 0,
-    };
+    this.sprites = { background: null, cell: null, body: null, food: null, head: null, bomb: null };
+    this.sounds = { bomb: null, food: null, theme: null };
+    this.canvasSize = { width: 0, height: 0 };
     this.dimensions = {
       max: {
         width: 640,
@@ -28,16 +19,13 @@ export default class SnakeGame {
         height: 300,
       },
     };
-    this.intervals = {
-      snake: null,
-      bomb: null,
-    };
+    this.intervals = { snake: null, bomb: null };
     this.board = new Board(this.ctx, {
       canvasSize: this.canvasSize,
       boardSize: this.config.size,
       sprites: this.sprites,
     });
-    this.snake = new Snake(this.ctx, this.board, { sprites: this.sprites });
+    this.snake = new Snake(this.ctx, this.board, { sprites: this.sprites, sounds: this.sounds });
   }
 
   start() {
@@ -50,7 +38,7 @@ export default class SnakeGame {
 
   preload(callback) {
     let loaded = 0;
-    const required = Object.keys(this.sprites).length;
+    const required = Object.keys(this.sprites).length + Object.keys(this.sounds).length;
 
     let onAssetLoad = () => {
       ++loaded;
@@ -58,10 +46,23 @@ export default class SnakeGame {
       loaded >= required && callback();
     };
 
+    this.preloadImages(onAssetLoad);
+    this.preloadSounds(onAssetLoad);
+  }
+
+  preloadImages(load) {
     for (let key in this.sprites) {
       this.sprites[key] = new Image();
-      this.sprites[key].src = `assets/${key}.png`;
-      this.sprites[key].addEventListener('load', onAssetLoad);
+      this.sprites[key].src = `assets/img/${key}.png`;
+      this.sprites[key].addEventListener('load', load);
+    }
+  }
+
+  preloadSounds(load) {
+    for (let key in this.sounds) {
+      this.sounds[key] = new Audio();
+      this.sounds[key].src = `assets/sound/${key}.mp3`;
+      this.sounds[key].addEventListener('canplaythrough', load, { once: true });
     }
   }
 
@@ -142,6 +143,8 @@ export default class SnakeGame {
   }
 
   stop() {
+    this.sounds.bomb.play();
+    this.sounds.theme.pause();
     Object.keys(this.intervals).forEach((interval) => clearInterval(this.intervals[interval]));
     alert('Game Over!');
     window.location.reload();

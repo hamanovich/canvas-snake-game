@@ -16,6 +16,10 @@ export default class Snake {
   }
 
   start(keyCode) {
+    if (!this.moving && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(keyCode)) {
+      this.enableSound();
+    }
+
     switch (keyCode) {
       case 'ArrowUp':
         this.direction = this.directions.up;
@@ -89,9 +93,15 @@ export default class Snake {
       if (!this.board.isFoodCell(cell)) {
         this.cells.pop();
       } else {
+        this.options.sounds.food.play();
         this.board.createFood();
       }
     }
+  }
+
+  enableSound() {
+    this.options.sounds.theme.loop = true;
+    this.options.sounds.theme.play();
   }
 
   getNextCell() {
