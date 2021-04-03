@@ -20,12 +20,15 @@ export default class SnakeGame {
         height: 300,
       },
     };
+    this.levels = [10, 20, 30, 40];
     this.intervals = { snake: null, bomb: null };
     this.score = 0;
+    this.snakeSpeed = (1000 / (this.config.snakeSpeed * 10)) * 3 || 150;
     this.board = new Board(this.ctx, {
       canvasSize: this.canvasSize,
       boardSize: this.config.size,
       sprites: this.sprites,
+      isSnakeOnCell: this.isSnakeOnCell,
     });
     this.snake = new Snake(this.ctx, this.board, { sprites: this.sprites });
   }
@@ -117,7 +120,10 @@ export default class SnakeGame {
 
   create() {
     this.board.create();
+    this.board.options.isSnakeOnCell = this.isSnakeOnCell.bind(this);
     this.snake.create();
+    this.board.createFood();
+    this.board.createBomb();
 
     window.addEventListener('keydown', (evt) => {
       this.snake.start(evt.code);
@@ -136,7 +142,7 @@ export default class SnakeGame {
       this.board.render();
       this.snake.render();
 
-      this.ctx.fillText(`Score: ${this.score}`, 25, 25);
+      this.ctx.fillText(`Score: ${this.score}; Level: ${this.currentLevel()}`, 25, 25);
     });
   }
 
@@ -148,13 +154,19 @@ export default class SnakeGame {
     this.snake.status === 'EAT' && this.snakeEat();
   }
 
+  updateSnake() {
+    this.snakeSpeed -= 25;
+    clearInterval(this.intervals.snake);
+    this.intervals.snake = setInterval(this.update.bind(this), this.snakeSpeed);
+  }
+
   run() {
     this.create();
 
-    this.intervals.snake = setInterval(this.update.bind(this), this.config.snakeSpped || 150);
+    this.intervals.snake = setInterval(this.update.bind(this), this.snakeSpeed);
     this.intervals.bomb = setInterval(() => {
       this.snake.moving && this.board.createBomb();
-    }, this.config.bombTimer || 3000);
+    }, this.config.bombTimer || 5000);
   }
 
   stop() {
@@ -168,6 +180,10 @@ export default class SnakeGame {
     window.location.reload();
   }
 
+  isSnakeOnCell(cell) {
+    return this.snake.cells.find((c) => c === cell);
+  }
+
   snakeStart() {
     if (this.mute) return;
 
@@ -178,9 +194,28 @@ export default class SnakeGame {
   snakeEat() {
     ++this.score;
 
-    if (this.mute) return;
+    if (!this.mute) {
+      this.sounds.food.play();
+    }
 
-    this.sounds.food.play();
+    if (this.levels.includes(this.score)) {
+      this.updateSnake();
+    }
+
     this.board.createFood();
+  }
+
+  currentLevel() {
+    if (this.score < this.levels[0]) {
+      return 1;
+    } else if (this.score >= this.levels[0] && this.score < this.levels[1]) {
+      return 2;
+    } else if (this.score >= this.levels[1] && this.score < this.levels[2]) {
+      return 3;
+    } else if (this.score >= this.levels[2] && this.score < this.levels[3]) {
+      return 4;
+    } else {
+      return 5;
+    }
   }
 }

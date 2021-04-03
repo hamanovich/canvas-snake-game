@@ -16,26 +16,33 @@ export default class Snake {
   }
 
   start(keyCode) {
-    if (!this.moving && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(keyCode)) {
+    if (
+      !this.moving &&
+      ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyS', 'KeyA', 'KeyD'].includes(keyCode)
+    ) {
       this.setStatus('START');
     }
 
     switch (keyCode) {
       case 'ArrowUp':
+      case 'KeyW':
         this.direction = this.directions.up;
         this.moving = true;
         break;
       case 'ArrowDown':
+      case 'KeyS':
         this.direction = this.directions.down;
         this.moving = true;
         break;
 
       case 'ArrowLeft':
+      case 'KeyA':
         this.direction = this.directions.left;
         this.moving = true;
         break;
 
       case 'ArrowRight':
+      case 'KeyD':
         this.direction = this.directions.right;
         this.moving = true;
         break;
@@ -63,9 +70,7 @@ export default class Snake {
     this.ctx.translate(head.x, head.y);
     this.ctx.translate(headSize / 2, headSize / 2);
     this.ctx.rotate((this.direction.angle * Math.PI) / 180);
-
     this.ctx.drawImage(this.options.sprites.head, -headSize / 2, -headSize / 2);
-
     this.ctx.restore();
   }
 
