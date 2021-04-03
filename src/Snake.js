@@ -17,7 +17,7 @@ export default class Snake {
 
   start(keyCode) {
     if (!this.moving && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(keyCode)) {
-      this.enableSound();
+      this.setStatus('START');
     }
 
     switch (keyCode) {
@@ -86,22 +86,16 @@ export default class Snake {
     const cell = this.getNextCell();
 
     if (!cell || this.hasCell(cell) || this.board.isBombCell(cell)) {
-      this.status = 'FAILED';
+      this.setStatus('FAILED', false);
     } else {
       this.cells.unshift(cell);
 
       if (!this.board.isFoodCell(cell)) {
         this.cells.pop();
       } else {
-        this.options.sounds.food.play();
-        this.board.createFood();
+        this.setStatus('EAT');
       }
     }
-  }
-
-  enableSound() {
-    this.options.sounds.theme.loop = true;
-    this.options.sounds.theme.play();
   }
 
   getNextCell() {
@@ -115,5 +109,10 @@ export default class Snake {
 
   hasCell(cell) {
     return this.cells.find((c) => c === cell);
+  }
+
+  setStatus(type, callback = true) {
+    this.status = type;
+    callback && setTimeout(() => (this.status = undefined), 0);
   }
 }

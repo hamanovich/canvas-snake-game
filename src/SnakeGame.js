@@ -9,6 +9,7 @@ export default class SnakeGame {
     this.sprites = { background: null, cell: null, body: null, food: null, head: null, bomb: null };
     this.sounds = { bomb: null, food: null, theme: null };
     this.canvasSize = { width: 0, height: 0 };
+    this.mute = config.mute || false;
     this.dimensions = {
       max: {
         width: 640,
@@ -20,16 +21,23 @@ export default class SnakeGame {
       },
     };
     this.intervals = { snake: null, bomb: null };
+    this.score = 0;
     this.board = new Board(this.ctx, {
       canvasSize: this.canvasSize,
       boardSize: this.config.size,
       sprites: this.sprites,
     });
-    this.snake = new Snake(this.ctx, this.board, { sprites: this.sprites, sounds: this.sounds });
+    this.snake = new Snake(this.ctx, this.board, { sprites: this.sprites });
+  }
+
+  setFont() {
+    this.ctx.font = '20px Arial';
+    this.ctx.fillStyle = '#fff';
   }
 
   start() {
     this.initDimensions();
+    this.setFont();
 
     this.preload(() => {
       this.run();
@@ -38,7 +46,9 @@ export default class SnakeGame {
 
   preload(callback) {
     let loaded = 0;
-    const required = Object.keys(this.sprites).length + Object.keys(this.sounds).length;
+    let required = Object.keys(this.sprites).length;
+
+    !this.mute && (required += Object.keys(this.sounds).length);
 
     let onAssetLoad = () => {
       ++loaded;
@@ -47,7 +57,8 @@ export default class SnakeGame {
     };
 
     this.preloadImages(onAssetLoad);
-    this.preloadSounds(onAssetLoad);
+
+    !this.mute && this.preloadSounds(onAssetLoad);
   }
 
   preloadImages(load) {
@@ -110,6 +121,7 @@ export default class SnakeGame {
 
     window.addEventListener('keydown', (evt) => {
       this.snake.start(evt.code);
+      this.snake.status === 'START' && this.snakeStart();
     });
   }
 
@@ -123,6 +135,8 @@ export default class SnakeGame {
       );
       this.board.render();
       this.snake.render();
+
+      this.ctx.fillText(`Score: ${this.score}`, 25, 25);
     });
   }
 
@@ -131,6 +145,7 @@ export default class SnakeGame {
     this.render();
 
     this.snake.status === 'FAILED' && this.stop();
+    this.snake.status === 'EAT' && this.snakeEat();
   }
 
   run() {
@@ -143,10 +158,29 @@ export default class SnakeGame {
   }
 
   stop() {
-    this.sounds.bomb.play();
-    this.sounds.theme.pause();
+    if (!this.mute) {
+      this.sounds.bomb.play();
+      this.sounds.theme.pause();
+    }
+
     Object.keys(this.intervals).forEach((interval) => clearInterval(this.intervals[interval]));
     alert('Game Over!');
     window.location.reload();
+  }
+
+  snakeStart() {
+    if (this.mute) return;
+
+    this.sounds.theme.loop = true;
+    this.sounds.theme.play();
+  }
+
+  snakeEat() {
+    ++this.score;
+
+    if (this.mute) return;
+
+    this.sounds.food.play();
+    this.board.createFood();
   }
 }
