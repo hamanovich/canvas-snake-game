@@ -50,9 +50,11 @@ export default class Snake {
   }
 
   create() {
+    const { boardSize } = this.options;
+
     const startCells = [
-      { row: 7, col: 7 },
-      { row: 8, col: 7 },
+      { row: boardSize - 2, col: Math.round(boardSize / 2) - 1 },
+      { row: boardSize - 1, col: Math.round(boardSize / 2) - 1 },
     ];
 
     this.direction = this.directions.up;

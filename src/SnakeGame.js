@@ -5,7 +5,12 @@ export default class SnakeGame {
   constructor(el, config) {
     this.canvas = document.getElementById(el);
     this.ctx = this.canvas.getContext('2d');
-    this.config = config;
+    this.config = {
+      bombSize: 1,
+      boardSize: 15,
+      snakeSpeed: 1,
+      ...config,
+    };
     this.sprites = { background: null, cell: null, body: null, food: null, head: null, bomb: null };
     this.sounds = { bomb: null, food: null, theme: null };
     this.canvasSize = { width: 0, height: 0 };
@@ -20,21 +25,21 @@ export default class SnakeGame {
         height: 300,
       },
     };
-    this.levels = [10, 20, 30, 40];
+    this.levels = [10, 20, 30, 50];
     this.intervals = { snake: null, bomb: null };
     this.score = 0;
     this.snakeSpeed = (1000 / (this.config.snakeSpeed * 10)) * 3 || 150;
     this.board = new Board(this.ctx, {
       canvasSize: this.canvasSize,
-      boardSize: this.config.size,
+      boardSize: this.config.boardSize,
       sprites: this.sprites,
       isSnakeOnCell: this.isSnakeOnCell,
     });
-    this.snake = new Snake(this.ctx, this.board, { sprites: this.sprites });
+    this.snake = new Snake(this.ctx, this.board, { sprites: this.sprites, boardSize: this.config.boardSize });
   }
 
   setFont() {
-    this.ctx.font = '20px Arial';
+    this.ctx.font = '14px Arial';
     this.ctx.fillStyle = '#fff';
   }
 
@@ -123,7 +128,7 @@ export default class SnakeGame {
     this.board.options.isSnakeOnCell = this.isSnakeOnCell.bind(this);
     this.snake.create();
     this.board.createFood();
-    this.board.createBomb();
+    this.board.createBomb(this.config.bombSize);
 
     window.addEventListener('keydown', (evt) => {
       this.snake.start(evt.code);
@@ -142,7 +147,13 @@ export default class SnakeGame {
       this.board.render();
       this.snake.render();
 
-      this.ctx.fillText(`Score: ${this.score}; Level: ${this.currentLevel()}`, 25, 25);
+      this.ctx.fillText(
+        `Score: ${this.score}; Level: ${this.currentLevel() + 1}; Speed: ${
+          this.config.snakeSpeed + this.currentLevel()
+        }`,
+        25,
+        25,
+      );
     });
   }
 
@@ -165,7 +176,7 @@ export default class SnakeGame {
 
     this.intervals.snake = setInterval(this.update.bind(this), this.snakeSpeed);
     this.intervals.bomb = setInterval(() => {
-      this.snake.moving && this.board.createBomb();
+      this.snake.moving && this.board.createBomb(this.config.bombSize);
     }, this.config.bombTimer || 5000);
   }
 
@@ -176,8 +187,9 @@ export default class SnakeGame {
     }
 
     Object.keys(this.intervals).forEach((interval) => clearInterval(this.intervals[interval]));
-    alert('Game Over!');
-    window.location.reload();
+    if (window.confirm(`Your result: ${this.score}. Try again?`)) {
+      window.location.reload();
+    }
   }
 
   isSnakeOnCell(cell) {
@@ -207,15 +219,15 @@ export default class SnakeGame {
 
   currentLevel() {
     if (this.score < this.levels[0]) {
-      return 1;
+      return 0;
     } else if (this.score >= this.levels[0] && this.score < this.levels[1]) {
-      return 2;
+      return 1;
     } else if (this.score >= this.levels[1] && this.score < this.levels[2]) {
-      return 3;
+      return 2;
     } else if (this.score >= this.levels[2] && this.score < this.levels[3]) {
-      return 4;
+      return 3;
     } else {
-      return 5;
+      return 4;
     }
   }
 }

@@ -5,8 +5,6 @@ export default class Board {
     this.ctx = context;
     this.options = options;
     this.cells = [];
-    this.boardSize = options.boardSize || 15;
-    this.gameSize = options?.canvasSize;
   }
 
   create() {
@@ -18,8 +16,8 @@ export default class Board {
   }
 
   createCells() {
-    for (let row = 0; row < this.boardSize; row++) {
-      for (let col = 0; col < this.boardSize; col++) {
+    for (let row = 0; row < this.options.boardSize; row++) {
+      for (let col = 0; col < this.options.boardSize; col++) {
         this.cells.push(this.createCell(this.options.sprites.cell, row, col));
       }
     }
@@ -27,8 +25,8 @@ export default class Board {
 
   createCell(cellSprite, row, col) {
     const cellSize = cellSprite.width + 1;
-    const offsetX = (this.gameSize.width - cellSize * this.boardSize) / 2;
-    const offsetY = (this.gameSize.height - cellSize * this.boardSize) / 2;
+    const offsetX = (this.options.canvasSize.width - cellSize * this.options.boardSize) / 2;
+    const offsetY = (this.options.canvasSize.height - cellSize * this.options.boardSize) / 2;
     const cell = {
       row,
       col,
@@ -47,7 +45,7 @@ export default class Board {
   createCellItem(type) {
     let cell = this.cells.find((c) => c.type === type);
 
-    cell && (cell.type = false);
+    cell?.type === 'food' && (cell.type = false);
     cell = this.getRandomCell();
     cell.type = type;
   }
@@ -56,8 +54,22 @@ export default class Board {
     this.createCellItem('food');
   }
 
-  createBomb() {
-    this.createCellItem('bomb');
+  createBomb(amount = 1) {
+    this.removeBombs();
+
+    for (let i = 1; i <= amount; i++) {
+      this.createCellItem('bomb');
+    }
+  }
+
+  removeBombs() {
+    this.cells.map((c) => {
+      if (c.type === 'bomb') {
+        delete c.type;
+      }
+
+      return c;
+    });
   }
 
   isFoodCell(cell) {

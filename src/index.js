@@ -3,7 +3,9 @@ import SnakeGame from './SnakeGame';
 
 window.game = new SnakeGame('mycanvas', {
   snakeSpeed: 2,
-  size: 15,
-  mute: true,
+  boardSize: 15,
+  bombSize: 2,
+  // bombTimer: 5000,
+  // mute: true,
 });
 window.game.start();
