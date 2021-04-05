@@ -65,14 +65,15 @@ export default class Snake {
   }
 
   renderHead() {
+    const { sprites } = this.options;
     const head = this.cells[0];
-    const headSize = this.options.sprites.head.width;
+    const headSize = sprites.head.width;
 
     this.ctx.save();
     this.ctx.translate(head.x, head.y);
     this.ctx.translate(headSize / 2, headSize / 2);
     this.ctx.rotate((this.direction.angle * Math.PI) / 180);
-    this.ctx.drawImage(this.options.sprites.head, -headSize / 2, -headSize / 2);
+    this.ctx.drawImage(sprites.head, -headSize / 2, -headSize / 2);
     this.ctx.restore();
   }
 

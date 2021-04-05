@@ -1,5 +1,8 @@
 import Board from './Board';
 import Snake from './Snake';
+import LocalStorage from './utils/storage';
+import Firebase from './utils/db';
+import Modal from './Modal';
 
 export default class SnakeGame {
   constructor(el, config) {
@@ -28,7 +31,10 @@ export default class SnakeGame {
     this.levels = [10, 20, 30, 50];
     this.intervals = { snake: null, bomb: null };
     this.score = 0;
+    this.scoreTable = {};
+    this.nickname = null;
     this.snakeSpeed = (1000 / (this.config.snakeSpeed * 10)) * 3 || 150;
+    this.db = new Firebase();
     this.board = new Board(this.ctx, {
       canvasSize: this.canvasSize,
       boardSize: this.config.boardSize,
@@ -43,13 +49,24 @@ export default class SnakeGame {
     this.ctx.fillStyle = '#fff';
   }
 
+  setNickname() {
+    this.nickname =
+      prompt('Type your nickname, please', JSON.parse(LocalStorage.getJsonItem('snakegame'))?.nickname) || 'anonymous';
+    LocalStorage.setItem('snakegame', JSON.stringify({ nickname: this.nickname }));
+  }
+
   start() {
+    this.db.initDB();
+    this.db.retrieveDataFromDB((table) => {
+      this.scoreTable = table;
+      new Modal(table);
+    });
+
+    this.setNickname();
     this.initDimensions();
     this.setFont();
 
-    this.preload(() => {
-      this.run();
-    });
+    this.preload(this.run.bind(this));
   }
 
   preload(callback) {
@@ -148,9 +165,7 @@ export default class SnakeGame {
       this.snake.render();
 
       this.ctx.fillText(
-        `Score: ${this.score}; Level: ${this.currentLevel() + 1}; Speed: ${
-          this.config.snakeSpeed + this.currentLevel()
-        }`,
+        `Score: ${this.score}; Level: ${this.actualLevel() + 1}; Speed: ${this.config.snakeSpeed + this.actualLevel()}`,
         25,
         25,
       );
@@ -180,13 +195,22 @@ export default class SnakeGame {
     }, this.config.bombTimer || 5000);
   }
 
-  stop() {
+  async stop() {
     if (!this.mute) {
       this.sounds.bomb.play();
       this.sounds.theme.pause();
     }
 
     Object.keys(this.intervals).forEach((interval) => clearInterval(this.intervals[interval]));
+
+    await this.db.storeInDB(this.scoreTable, {
+      score: this.score,
+      nickname: this.nickname,
+      level: this.actualLevel(),
+      speed: this.actualSpeed(),
+    });
+    this.db.detach();
+
     if (window.confirm(`Your result: ${this.score}. Try again?`)) {
       window.location.reload();
     }
@@ -217,7 +241,7 @@ export default class SnakeGame {
     this.board.createFood();
   }
 
-  currentLevel() {
+  actualLevel() {
     if (this.score < this.levels[0]) {
       return 0;
     } else if (this.score >= this.levels[0] && this.score < this.levels[1]) {
@@ -229,5 +253,9 @@ export default class SnakeGame {
     } else {
       return 4;
     }
+  }
+
+  actualSpeed() {
+    return this.config.snakeSpeed + this.actualLevel();
   }
 }

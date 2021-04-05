@@ -1,4 +1,4 @@
-import { randomValue } from './utils';
+import { randomValue } from './utils/common';
 
 export default class Board {
   constructor(context, options) {
@@ -16,17 +16,20 @@ export default class Board {
   }
 
   createCells() {
-    for (let row = 0; row < this.options.boardSize; row++) {
-      for (let col = 0; col < this.options.boardSize; col++) {
-        this.cells.push(this.createCell(this.options.sprites.cell, row, col));
+    const { boardSize, sprites } = this.options;
+
+    for (let row = 0; row < boardSize; row++) {
+      for (let col = 0; col < boardSize; col++) {
+        this.cells.push(this.createCell(sprites.cell, row, col));
       }
     }
   }
 
   createCell(cellSprite, row, col) {
+    const { canvasSize, boardSize } = this.options;
     const cellSize = cellSprite.width + 1;
-    const offsetX = (this.options.canvasSize.width - cellSize * this.options.boardSize) / 2;
-    const offsetY = (this.options.canvasSize.height - cellSize * this.options.boardSize) / 2;
+    const offsetX = (canvasSize.width - cellSize * boardSize) / 2;
+    const offsetY = (canvasSize.height - cellSize * boardSize) / 2;
     const cell = {
       row,
       col,
@@ -81,8 +84,8 @@ export default class Board {
   }
 
   render() {
-    this.cells.forEach((cell) =>
-      this.ctx.drawImage(cell.type ? this.options.sprites[cell.type] : this.options.sprites.cell, cell.x, cell.y),
-    );
+    const { sprites } = this.options;
+    
+    this.cells.forEach((cell) => this.ctx.drawImage(cell.type ? sprites[cell.type] : sprites.cell, cell.x, cell.y));
   }
 }

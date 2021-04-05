@@ -3,14 +3,23 @@
   "version": "1.0.0",
   "private": true,
   "license": "MIT",
+  "description": "Canvagame is an HTML5 Canvas snake game.",
+  "author": "Siarhei Hamanovich <hamanovich@gmail.com> (http://github.com/hamanovich)",
+  "homepage": "https://github.com/hamanovich/canvas-snake-game",
+  "bugs": {
+    "url": "https://github.com/hamanovich/canvas-snake-game/issues",
+    "email": "hamanovich@gmail.com"
+  },
   "scripts": {
     "start": "webpack serve --config webpack.dev.js",
-    "build": "webpack build --config webpack.prod.js"
+    "build": "webpack build --config webpack.prod.js",
+    "deploy": "yarn build && surge --domain http://roasted-crayon.surge.sh/"
   },
   "devDependencies": {
     "copy-webpack-plugin": "^8.1.0",
     "css-loader": "^5.2.0",
     "css-minimizer-webpack-plugin": "^1.3.0",
+    "dotenv-webpack": "^7.0.2",
     "eslint": "^7.23.0",
     "eslint-config-prettier": "^8.1.0",
     "html-webpack-plugin": "^5.3.1",
@@ -21,5 +30,8 @@
     "webpack-cli": "^4.6.0",
     "webpack-dev-server": "^3.11.2",
     "webpack-merge": "^5.7.3"
+  },
+  "dependencies": {
+    "firebase": "^8.3.2"
   }
 }
